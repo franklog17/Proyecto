@@ -12,7 +12,7 @@ Funciona con 4 opciones sencillas iniciales:
 
 Tengo planeado evolucionar el programa como agregar detalle de cada gasto, alertar si hay gasto excesivo o funciones mas especificas para cada opción.
 
-
+#Este código solo incluye condicionales y operadores aritméticos, considerando lo visto en clase, por eso todavía no incluye menú de opciones.
 
 def registrar_ingreso(balance, monto):
     nuevo_balance = balance + monto
