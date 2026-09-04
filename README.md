@@ -11,3 +11,24 @@ Funciona con 4 opciones sencillas iniciales:
 4) Salir.
 
 Tengo planeado evolucionar el programa como agregar detalle de cada gasto, alertar si hay gasto excesivo o funciones mas especificas para cada opción.
+
+
+
+def registrar_ingreso(balance, monto):
+    nuevo_balance = balance + monto
+    return nuevo_balance
+
+def registrar_gasto(balance, monto):
+    nuevo_balance = balance - monto
+    return nuevo_balance
+
+def ver_balance(balance):
+    return balance
+
+balance = 0
+mi_ingreso = float(input("¿Cuanto dinero ganaste hoy?"))
+mi_gasto = float(input("¿Cuanto dinero gastaste hoy?"))
+
+balance = registrar_ingreso(balance, mi_ingreso)
+balance = registrar_gasto(balance, mi_gasto)
+print("Tu dinero actual es: ${:.2f}".format(ver_balance(balance)))
