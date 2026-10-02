@@ -17,12 +17,11 @@ def registrar_gasto(balance, monto):
     return nuevo_balance
 
 def ver_balance(balance):
-    # Recibe el balance actual y simplemente lo devuelve para mostrarlo.
-    return balance
+    # Recibe el balance actual y devuelve el monto formateado como texto con 2 decimales y signo $.
+    return f"${balance:.2f}"
 
 # Solicitamos el nombre para personalizar la experiencia
 usuario = input("¿Cuál es tu nombre? ")
-
 # Inicializamos el balance en 0
 balance = 0.0
 
@@ -35,4 +34,4 @@ balance = registrar_ingreso(balance, mi_ingreso)
 balance = registrar_gasto(balance, mi_gasto)
 
 # Mostramos el resultado final personalizado con formato de 2 decimales
-print(f"{usuario}, tu dinero actual es: ${ver_balance(balance):.2f}")
+print(f"{usuario}, tu dinero actual es: {ver_balance(balance)}")
