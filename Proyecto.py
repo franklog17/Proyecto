@@ -4,26 +4,30 @@
 # --- FUNCIONES ---
 
 def registrar_ingreso(balance, monto):
-    # Recibe el balance actual y el monto ganado, calcula la suma y devuelve el nuevo balance.
+    """Calcula la suma del balance actual y el monto ganado."""
     nuevo_balance = balance + monto
     return nuevo_balance
 
+
 def registrar_gasto(balance, monto):
-    # Recibe el balance actual y el monto gastado, calcula la resta y devuelve el nuevo balance.
+    """Calcula la resta del balance actual y el monto gastado."""
     nuevo_balance = balance - monto
     return nuevo_balance
 
+
 def ver_balance(balance):
-    # Devuelve el monto formateado como texto con 2 decimales y signo $.
+    """Devuelve el monto formateado como texto con 2 decimales y signo $."""
     return f"${balance:.2f}"
 
+
 def pedir_monto_valido(mensaje):
-    # Usa un ciclo while para asegurar que el usuario ingrese un monto positivo.
+    """Asegura mediante un ciclo while que el usuario ingrese un monto positivo."""
     monto = float(input(mensaje))
     while monto <= 0:
         print(" Error: El monto debe ser un número mayor a 0.")
         monto = float(input(mensaje))
     return monto
+
 
 # --- PROGRAMA PRINCIPAL ---
 
