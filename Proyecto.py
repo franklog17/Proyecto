@@ -1,4 +1,3 @@
-#AVANCE 3: Módulos y Funciones Reusables
 # Descripción: Este programa calcula las finanzas 
 # diarias separando la lógica en funciones 
 # independientes con paso de parámetros y return.
