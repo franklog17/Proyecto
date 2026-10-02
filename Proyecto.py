@@ -1,4 +1,3 @@
-#AVANCE 4: Control de Flujo con Menú Interactivo (while)
 # Descripción: Gestor de finanzas interactivo que permite realizar 
 # múltiples operaciones mediante un menú continuo y valida los datos de entrada.
 
@@ -6,11 +5,13 @@
 
 def registrar_ingreso(balance, monto):
     # Recibe el balance actual y el monto ganado, calcula la suma y devuelve el nuevo balance.
-    return balance + monto
+    nuevo_balance = balance + monto
+    return nuevo_balance
 
 def registrar_gasto(balance, monto):
     # Recibe el balance actual y el monto gastado, calcula la resta y devuelve el nuevo balance.
-    return balance - monto
+    nuevo_balance = balance - monto
+    return nuevo_balance
 
 def ver_balance(balance):
     # Devuelve el monto formateado como texto con 2 decimales y signo $.
