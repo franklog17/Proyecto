@@ -1,34 +1,33 @@
-# Proyecto Gestor de finanzas
+# TC 1028 Proyecto Gestor de Finanzas
 
-Contexto
+Este proyecto es una aplicación interactiva desarrollada para la materia TC 1028. El programa está diseñado de forma modular, siguiendo las directrices del estándar PEP 8 y aplicando las buenas prácticas vistas en clase.
 
-Este programa tiene como función llevar un control propio de las finanzas, como un cuaderno con un menu sencillo de opciones.
-Funciona con 4 opciones sencillas iniciales:
+El código se encuentra organizado en funciones independientes y reusables con paso de parámetros y retornos (`return`), permitiendo procesar operaciones financieras cotidianas y controlar la navegación mediante un menú continuo en consola.
 
-1) Registrar gastos: Escribes cuánto gastaste y en qué.
-2) Registrar ingresos: Cuánto dinero ganaste o recibiste.
-3) Ver balance: El programa suma todo lo que ganaste-recibiste, resta todo lo que gastaste y te dice cuánto te queda automaticamente.
-4) Salir.
+En los comentarios dentro de cada función se especifican las subcompetencias evaluadas en la materia que demuestra cada sección del programa.
 
-Tengo planeado evolucionar el programa como agregar detalle de cada gasto, alertar si hay gasto excesivo o funciones mas especificas para cada opción.
+---
 
-#Este código solo incluye condicionales y operadores aritméticos, considerando lo visto en clase, por eso todavía no incluye menú de opciones.
+## Gestor de Finanzas Personales
 
-def registrar_ingreso(balance, monto):
-    nuevo_balance = balance + monto
-    return nuevo_balance
+### Contexto
 
-def registrar_gasto(balance, monto):
-    nuevo_balance = balance - monto
-    return nuevo_balance
+El control de las finanzas personales es crucial para el bienestar financiero individual. Muchas personas tienen dificultades para llevar un registro constante de sus ingresos y gastos diarios, lo que dificulta conocer su saldo disponible en tiempo real o detectar patrones de consumo excesivo.
 
-def ver_balance(balance):
-    return balance
+Este programa ofrece una herramienta ligera y funcional en terminal que actúa como una libreta interactiva de ingresos y egresos, permitiendo a los usuarios registrar sus operaciones financieras paso a paso y mantener un balance actualizado al instante.
 
-balance = 0
-mi_ingreso = float(input("¿Cuanto dinero ganaste hoy?"))
-mi_gasto = float(input("¿Cuanto dinero gastaste hoy?"))
+### Descripción del Programa
 
-balance = registrar_ingreso(balance, mi_ingreso)
-balance = registrar_gasto(balance, mi_gasto)
-print("Tu dinero actual es: ${:.2f}".format(ver_balance(balance)))
+Este programa es un gestor de finanzas personales interactivo que corre en terminal con Python 3. Ofrece un menú interactivo con las siguientes funciones principales:
+
+1. **Registrar ingreso:** Permite sumar fondos al balance actual validando que el monto ingresado sea mayor a cero.
+2. **Registrar gasto:** Permite restar fondos del balance actual con alertas preventivas si la transacción genera un saldo negativo.
+3. **Ver balance actual:** Muestra el saldo disponible con formato estandarizado de moneda a dos decimales.
+4. **Ver resumen de la sesión:** Muestra el recuento de transacciones registradas (cantidad de ingresos y gastos) y los acumulados totales de la sesión.
+5. **Salir:** Cierra la aplicación de forma limpia con un mensaje de despedida.
+
+### Instrucciones
+----
+
+
+gracias por visitar
