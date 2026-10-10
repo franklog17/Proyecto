@@ -1,18 +1,10 @@
-# Descripción: Gestor de finanzas interactivo que permite realizar 
-# múltiples operaciones mediante un menú continuo y valida los datos de entrada.
-
-# --- FUNCIONES ---
-
-def registrar_ingreso(balance, monto):
-    """Calcula la suma del balance actual y el monto ganado."""
-    nuevo_balance = balance + monto
-    return nuevo_balance
+# Descripción: Gestor de finanzas interactivo con soporte de listas
+# para almacenar e analizar el historial de transacciones.
 
 
-def registrar_gasto(balance, monto):
-    """Calcula la resta del balance actual y el monto gastado."""
-    nuevo_balance = balance - monto
-    return nuevo_balance
+def registrar_monto(lista_destino, monto):
+    """Agrega un monto validado a la lista de transacciones dada."""
+    lista_destino.append(monto)
 
 
 def ver_balance(balance):
@@ -21,7 +13,7 @@ def ver_balance(balance):
 
 
 def pedir_monto_valido(mensaje):
-    """Asegura mediante un ciclo while que el usuario ingrese un monto positivo."""
+    """Asegura mediante un ciclo mientras que el monto sea mayor a cero."""
     monto = float(input(mensaje))
     while monto <= 0:
         print(" Error: El monto debe ser un número mayor a 0.")
@@ -29,65 +21,86 @@ def pedir_monto_valido(mensaje):
     return monto
 
 
+def mostrar_historial(lista, tipo):
+    """Imprime el listado numerado de elementos de una lista."""
+    print(f"\n--- HISTORIAL DE {tipo.upper()}S ---")
+    if not lista:
+        print(f"No hay {tipo}s registrados.")
+    else:
+        for i in range(len(lista)):
+            print(f"{i + 1}. ${lista[i]:.2f}")
+
+
+def calcular_estadisticas(lista, tipo):
+    """Muestra la suma, promedio, máximo y mínimo de una lista."""
+    if not lista:
+        print(f"\nNo hay datos registrados para estadísticas de {tipo}.")
+        return
+
+    total = sum(lista)
+    promedio = total / len(lista)
+    maximo = max(lista)
+    minimo = min(lista)
+
+    print(f"\n--- ESTADÍSTICAS DE {tipo.upper()}S ---")
+    print(f"Total acumulado: ${total:.2f}")
+    print(f"Promedio por registro: ${promedio:.2f}")
+    print(f"Mayor {tipo}: ${maximo:.2f}")
+    print(f"Menor {tipo}: ${minimo:.2f}")
+
+
 # --- PROGRAMA PRINCIPAL ---
 
-# Solicitamos el nombre para personalizar la experiencia
 usuario = input("¿Cuál es tu nombre? ")
 
-# Inicializamos el balance y los contadores
-balance = 0.0
-cant_ingresos = 0
-cant_gastos = 0
-total_ingresado = 0.0
-total_gastado = 0.0
+# Inicialización de arreglos/listas para el historial
+ingresos = []
+gastos = []
 
 opcion = ""
 
-# Ciclo principal: se repite hasta que el usuario elija la opción "5"
-while opcion != "5":
+while opcion != "6":
     print(f"\n=== GESTOR DE FINANZAS DE {usuario.upper()} ===")
     print("1. Registrar un ingreso")
     print("2. Registrar un gasto")
     print("3. Ver balance actual")
-    print("4. Ver resumen del día")
-    print("5. Salir")
-    
-    opcion = input("Selecciona una opción (1-5): ")
+    print("4. Ver historial de movimientos")
+    print("5. Ver estadísticas del día")
+    print("6. Salir")
+
+    opcion = input("Selecciona una opción (1-6): ")
 
     if opcion == "1":
         monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
-        balance = registrar_ingreso(balance, monto)
-        
-        # Actualizamos contadores y acumuladores
-        cant_ingresos += 1
-        total_ingresado += monto
-        print(f" Ingreso registrado correctamente. Balance actual: {ver_balance(balance)}")
+        registrar_monto(ingresos, monto)
+        balance = sum(ingresos) - sum(gastos)
+        print(f" Ingreso registrado. Balance: {ver_balance(balance)}")
 
     elif opcion == "2":
         monto = pedir_monto_valido("¿Cuánto dinero gastaste? $")
-        
-        # Alerta opcional si el gasto supera el balance disponible
-        if monto > balance:
-            print(" ¡Advertencia! Este gasto supera tu saldo disponible. Tu balance quedará negativo.")
-            
-        balance = registrar_gasto(balance, monto)
-        
-        # Actualizamos contadores y acumuladores
-        cant_gastos += 1
-        total_gastado += monto
-        print(f" Gasto registrado correctamente. Balance actual: {ver_balance(balance)}")
+        balance_actual = sum(ingresos) - sum(gastos)
+
+        if monto > balance_actual:
+            print(" ¡Advertencia! El gasto supera tu saldo disponible.")
+
+        registrar_monto(gastos, monto)
+        balance = sum(ingresos) - sum(gastos)
+        print(f" Gasto registrado. Balance: {ver_balance(balance)}")
 
     elif opcion == "3":
+        balance = sum(ingresos) - sum(gastos)
         print(f"\n Tu saldo actual es: {ver_balance(balance)}")
 
     elif opcion == "4":
-        print("\n--- RESUMEN DE LA SESIÓN ---")
-        print(f"Número de ingresos: {cant_ingresos} (Total: ${total_ingresado:.2f})")
-        print(f"Número de gastos:   {cant_gastos} (Total: ${total_gastado:.2f})")
-        print(f"Saldo final:        {ver_balance(balance)}")
+        mostrar_historial(ingresos, "ingreso")
+        mostrar_historial(gastos, "gasto")
 
     elif opcion == "5":
-        print(f"\n¡Hasta luego, {usuario}! Gracias por usar el gestor de finanzas.")
+        calcular_estadisticas(ingresos, "ingreso")
+        calcular_estadisticas(gastos, "gasto")
+
+    elif opcion == "6":
+        print(f"\n¡Hasta luego, {usuario}! Gracias por usar el gestor.")
 
     else:
-        print(" Opción no válida. Por favor, elige un número del 1 al 5.")
+        print(" Opción no válida. Por favor, elige un número del 1 al 6.")
