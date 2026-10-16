@@ -1,10 +1,15 @@
-# Descripción: Gestor de finanzas interactivo con soporte de listas
-# para almacenar e analizar el historial de transacciones.
+# Constantes del menú a nivel de módulo
+OPCION_INGRESO = "1"
+OPCION_GASTO = "2"
+OPCION_BALANCE = "3"
+OPCION_HISTORIAL = "4"
+OPCION_ESTADISTICAS = "5"
+OPCION_SALIR = "6"
 
 
-def registrar_monto(lista_destino, monto):
-    """Agrega un monto validado a la lista de transacciones dada."""
-    lista_destino.append(monto)
+def registrar_transaccion(matriz, monto, tipo):
+    """Agrega un sub-arreglo [monto, tipo] a la matriz de transacciones."""
+    matriz.append([monto, tipo])
 
 
 def ver_balance(balance):
@@ -21,86 +26,125 @@ def pedir_monto_valido(mensaje):
     return monto
 
 
-def mostrar_historial(lista, tipo):
-    """Imprime el listado numerado de elementos de una lista."""
-    print(f"\n--- HISTORIAL DE {tipo.upper()}S ---")
-    if not lista:
-        print(f"No hay {tipo}s registrados.")
-    else:
-        for i in range(len(lista)):
-            print(f"{i + 1}. ${lista[i]:.2f}")
+def calcular_total_por_tipo(matriz, tipo_buscado):
+    """Suma los montos de una matriz bidimensional filtrando por tipo."""
+    total = 0.0
+    for i in range(len(matriz)):
+        if matriz[i][1] == tipo_buscado:
+            total += matriz[i][0]
+    return total
 
 
-def calcular_estadisticas(lista, tipo):
-    """Muestra la suma, promedio, máximo y mínimo de una lista."""
-    if not lista:
-        print(f"\nNo hay datos registrados para estadísticas de {tipo}.")
+def mostrar_historial(matriz, tipo_buscado):
+    """Imprime el listado numerado de elementos de un tipo específico."""
+    print(f"\n--- HISTORIAL DE {tipo_buscado.upper()}S ---")
+    contador = 0
+    
+    for i in range(len(matriz)):
+        if matriz[i][1] == tipo_buscado:
+            contador += 1
+            print(f"{contador}. ${matriz[i][0]:.2f}")
+            
+    if contador == 0:
+        print(f"No hay {tipo_buscado}s registrados.")
+
+
+def calcular_estadisticas(matriz, tipo_buscado):
+    """Calcula suma, promedio, máximo y mínimo usando índices de arreglos."""
+    total = 0.0
+    contador = 0
+    maximo = -1.0 
+    minimo = float('inf')
+
+    for i in range(len(matriz)):
+        if matriz[i][1] == tipo_buscado:
+            monto = matriz[i][0]
+            total += monto
+            contador += 1
+            
+            if monto > maximo:
+                maximo = monto
+            if monto < minimo:
+                minimo = monto
+
+    if contador == 0:
+        print(f"\nNo hay datos registrados para estadísticas de "
+              f"{tipo_buscado}.")
         return
 
-    total = sum(lista)
-    promedio = total / len(lista)
-    maximo = max(lista)
-    minimo = min(lista)
+    promedio = total / contador
 
-    print(f"\n--- ESTADÍSTICAS DE {tipo.upper()}S ---")
+    print(f"\n--- ESTADÍSTICAS DE {tipo_buscado.upper()}S ---")
     print(f"Total acumulado: ${total:.2f}")
     print(f"Promedio por registro: ${promedio:.2f}")
-    print(f"Mayor {tipo}: ${maximo:.2f}")
-    print(f"Menor {tipo}: ${minimo:.2f}")
+    print(f"Mayor {tipo_buscado}: ${maximo:.2f}")
+    print(f"Menor {tipo_buscado}: ${minimo:.2f}")
 
 
-# --- PROGRAMA PRINCIPAL ---
+def main():
+    """Función principal que ejecuta el gestor de finanzas."""
+    usuario = input("¿Cuál es tu nombre? ")
 
-usuario = input("¿Cuál es tu nombre? ")
+    # Arreglo bidimensional (matriz) para el historial
+    transacciones = []
+    opcion = ""
 
-# Inicialización de arreglos/listas para el historial
-ingresos = []
-gastos = []
+    while opcion != OPCION_SALIR:
+        print(f"\n=== GESTOR DE FINANZAS DE {usuario.upper()} ===")
+        print(f"{OPCION_INGRESO}. Registrar un ingreso")
+        print(f"{OPCION_GASTO}. Registrar un gasto")
+        print(f"{OPCION_BALANCE}. Ver balance actual")
+        print(f"{OPCION_HISTORIAL}. Ver historial de movimientos")
+        print(f"{OPCION_ESTADISTICAS}. Ver estadísticas del día")
+        print(f"{OPCION_SALIR}. Salir")
 
-opcion = ""
+        opcion = input("Selecciona una opción (1-6): ")
 
-while opcion != "6":
-    print(f"\n=== GESTOR DE FINANZAS DE {usuario.upper()} ===")
-    print("1. Registrar un ingreso")
-    print("2. Registrar un gasto")
-    print("3. Ver balance actual")
-    print("4. Ver historial de movimientos")
-    print("5. Ver estadísticas del día")
-    print("6. Salir")
+        if opcion == OPCION_INGRESO:
+            monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
+            registrar_transaccion(transacciones, monto, "ingreso")
+            
+            ingresos = calcular_total_por_tipo(transacciones, "ingreso")
+            gastos = calcular_total_por_tipo(transacciones, "gasto")
+            
+            balance = ingresos - gastos
+            print(f" Ingreso registrado. Balance: {ver_balance(balance)}")
 
-    opcion = input("Selecciona una opción (1-6): ")
+        elif opcion == OPCION_GASTO:
+            monto = pedir_monto_valido("¿Cuánto dinero gastaste? $")
+            
+            ingresos = calcular_total_por_tipo(transacciones, "ingreso")
+            gastos = calcular_total_por_tipo(transacciones, "gasto")
+            balance_actual = ingresos - gastos
 
-    if opcion == "1":
-        monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
-        registrar_monto(ingresos, monto)
-        balance = sum(ingresos) - sum(gastos)
-        print(f" Ingreso registrado. Balance: {ver_balance(balance)}")
+            if monto > balance_actual:
+                print(" ¡Advertencia! El gasto supera tu saldo disponible.")
 
-    elif opcion == "2":
-        monto = pedir_monto_valido("¿Cuánto dinero gastaste? $")
-        balance_actual = sum(ingresos) - sum(gastos)
+            registrar_transaccion(transacciones, monto, "gasto")
+            balance = balance_actual - monto
+            print(f" Gasto registrado. Balance: {ver_balance(balance)}")
 
-        if monto > balance_actual:
-            print(" ¡Advertencia! El gasto supera tu saldo disponible.")
+        elif opcion == OPCION_BALANCE:
+            ingresos = calcular_total_por_tipo(transacciones, "ingreso")
+            gastos = calcular_total_por_tipo(transacciones, "gasto")
+            balance = ingresos - gastos
+            print(f"\n Tu saldo actual es: {ver_balance(balance)}")
 
-        registrar_monto(gastos, monto)
-        balance = sum(ingresos) - sum(gastos)
-        print(f" Gasto registrado. Balance: {ver_balance(balance)}")
+        elif opcion == OPCION_HISTORIAL:
+            mostrar_historial(transacciones, "ingreso")
+            mostrar_historial(transacciones, "gasto")
 
-    elif opcion == "3":
-        balance = sum(ingresos) - sum(gastos)
-        print(f"\n Tu saldo actual es: {ver_balance(balance)}")
+        elif opcion == OPCION_ESTADISTICAS:
+            calcular_estadisticas(transacciones, "ingreso")
+            calcular_estadisticas(transacciones, "gasto")
 
-    elif opcion == "4":
-        mostrar_historial(ingresos, "ingreso")
-        mostrar_historial(gastos, "gasto")
+        elif opcion == OPCION_SALIR:
+            print(f"\n¡Hasta luego, {usuario}! Gracias por usar el gestor.")
 
-    elif opcion == "5":
-        calcular_estadisticas(ingresos, "ingreso")
-        calcular_estadisticas(gastos, "gasto")
+        else:
+            print(" Opción no válida. Por favor, elige un número del 1 al 6.")
 
-    elif opcion == "6":
-        print(f"\n¡Hasta luego, {usuario}! Gracias por usar el gestor.")
 
-    else:
-        print(" Opción no válida. Por favor, elige un número del 1 al 6.")
+# Ejecución del programa principal
+if __name__ == "__main__":
+    main()
