@@ -1,10 +1,15 @@
-# Descripción: Gestor de finanzas interactivo con soporte de listas
-# para almacenar e analizar el historial de transacciones.
+# Constante de módulo para el tamaño del arreglo
+CAPACIDAD_MAX = 10
 
 
-def registrar_monto(lista_destino, monto):
-    """Agrega un monto validado a la lista de transacciones dada."""
-    lista_destino.append(monto)
+def registrar_en_arreglo(arreglo, contador, monto):
+    """Guarda un monto en la posición actual del arreglo si hay espacio."""
+    if contador < CAPACIDAD_MAX:
+        arreglo[contador] = monto
+        return contador + 1
+    else:
+        print(" Error: El arreglo está lleno. No caben más registros.")
+        return contador
 
 
 def ver_balance(balance):
@@ -13,7 +18,7 @@ def ver_balance(balance):
 
 
 def pedir_monto_valido(mensaje):
-    """Asegura mediante un ciclo mientras que el monto sea mayor a cero."""
+    """Asegura mediante un ciclo while que el monto sea mayor a cero."""
     monto = float(input(mensaje))
     while monto <= 0:
         print(" Error: El monto debe ser un número mayor a 0.")
@@ -21,86 +26,86 @@ def pedir_monto_valido(mensaje):
     return monto
 
 
-def mostrar_historial(lista, tipo):
-    """Imprime el listado numerado de elementos de una lista."""
+def mostrar_arreglo(arreglo, cantidad, tipo):
+    """Recorre el arreglo mediante un ciclo for hasta la cantidad ocupada."""
     print(f"\n--- HISTORIAL DE {tipo.upper()}S ---")
-    if not lista:
+    if cantidad == 0:
         print(f"No hay {tipo}s registrados.")
     else:
-        for i in range(len(lista)):
-            print(f"{i + 1}. ${lista[i]:.2f}")
+        for i in range(cantidad):
+            print(f"Posición [{i}]: ${arreglo[i]:.2f}")
 
 
-def calcular_estadisticas(lista, tipo):
-    """Muestra la suma, promedio, máximo y mínimo de una lista."""
-    if not lista:
-        print(f"\nNo hay datos registrados para estadísticas de {tipo}.")
-        return
-
-    total = sum(lista)
-    promedio = total / len(lista)
-    maximo = max(lista)
-    minimo = min(lista)
-
-    print(f"\n--- ESTADÍSTICAS DE {tipo.upper()}S ---")
-    print(f"Total acumulado: ${total:.2f}")
-    print(f"Promedio por registro: ${promedio:.2f}")
-    print(f"Mayor {tipo}: ${maximo:.2f}")
-    print(f"Menor {tipo}: ${minimo:.2f}")
+def calcular_suma_arreglo(arreglo, cantidad):
+    """Suma los elementos válidos guardados en el arreglo."""
+    total = 0.0
+    for i in range(cantidad):
+        total += arreglo[i]
+    return total
 
 
 # --- PROGRAMA PRINCIPAL ---
 
 usuario = input("¿Cuál es tu nombre? ")
 
-# Inicialización de arreglos/listas para el historial
-ingresos = []
-gastos = []
+# Definición de arreglos estáticos con tamaño fijo
+ingresos = [0.0] * CAPACIDAD_MAX
+gastos = [0.0] * CAPACIDAD_MAX
+
+# Contadores de elementos ocupados en cada arreglo
+cant_ingresos = 0
+cant_gastos = 0
 
 opcion = ""
 
-while opcion != "6":
+while opcion != "5":
     print(f"\n=== GESTOR DE FINANZAS DE {usuario.upper()} ===")
     print("1. Registrar un ingreso")
     print("2. Registrar un gasto")
     print("3. Ver balance actual")
-    print("4. Ver historial de movimientos")
-    print("5. Ver estadísticas del día")
-    print("6. Salir")
+    print("4. Ver historial (Arreglos)")
+    print("5. Salir")
 
-    opcion = input("Selecciona una opción (1-6): ")
+    opcion = input("Selecciona una opción (1-5): ")
 
     if opcion == "1":
-        monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
-        registrar_monto(ingresos, monto)
-        balance = sum(ingresos) - sum(gastos)
-        print(f" Ingreso registrado. Balance: {ver_balance(balance)}")
+        if cant_ingresos < CAPACIDAD_MAX:
+            monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
+            cant_ingresos = registrar_en_arreglo(
+                ingresos, cant_ingresos, monto
+            )
+            total_ing = calcular_suma_arreglo(ingresos, cant_ingresos)
+            total_gas = calcular_suma_arreglo(gastos, cant_gastos)
+            print(f" Registrado. Balance: {ver_balance(total_ing - total_gas)}")
+        else:
+            print(" Capacidad máxima de ingresos alcanzada.")
 
     elif opcion == "2":
-        monto = pedir_monto_valido("¿Cuánto dinero gastaste? $")
-        balance_actual = sum(ingresos) - sum(gastos)
+        if cant_gastos < CAPACIDAD_MAX:
+            monto = pedir_monto_valido("¿Cuánto dinero gastaste? $")
+            total_ing = calcular_suma_arreglo(ingresos, cant_ingresos)
+            total_gas = calcular_suma_arreglo(gastos, cant_gastos)
 
-        if monto > balance_actual:
-            print(" ¡Advertencia! El gasto supera tu saldo disponible.")
+            if monto > (total_ing - total_gas):
+                print(" ¡Advertencia! Este gasto supera tu saldo actual.")
 
-        registrar_monto(gastos, monto)
-        balance = sum(ingresos) - sum(gastos)
-        print(f" Gasto registrado. Balance: {ver_balance(balance)}")
+            cant_gastos = registrar_en_arreglo(gastos, cant_gastos, monto)
+            total_gas = calcular_suma_arreglo(gastos, cant_gastos)
+            print(f" Registrado. Balance: {ver_balance(total_ing - total_gas)}")
+        else:
+            print(" Capacidad máxima de gastos alcanzada.")
 
     elif opcion == "3":
-        balance = sum(ingresos) - sum(gastos)
-        print(f"\n Tu saldo actual es: {ver_balance(balance)}")
+        total_ing = calcular_suma_arreglo(ingresos, cant_ingresos)
+        total_gas = calcular_suma_arreglo(gastos, cant_gastos)
+        print(f"\n Tu saldo actual es: {ver_balance(total_ing - total_gas)}")
 
     elif opcion == "4":
-        mostrar_historial(ingresos, "ingreso")
-        mostrar_historial(gastos, "gasto")
+        mostrar_arreglo(ingresos, cant_ingresos, "ingreso")
+        mostrar_arreglo(gastos, cant_gastos, "gasto")
 
     elif opcion == "5":
-        calcular_estadisticas(ingresos, "ingreso")
-        calcular_estadisticas(gastos, "gasto")
-
-    elif opcion == "6":
         print(f"\n¡Hasta luego, {usuario}! Gracias por usar el gestor.")
 
     else:
-        print(" Opción no válida. Por favor, elige un número del 1 al 6.")
+        print(" Opción no válida. Por favor, elige un número del 1 al 5.")
