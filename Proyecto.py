@@ -4,7 +4,8 @@ OPCION_GASTO = "2"
 OPCION_BALANCE = "3"
 OPCION_HISTORIAL = "4"
 OPCION_ESTADISTICAS = "5"
-OPCION_SALIR = "6"
+OPCION_CALCULADORA = "6"
+OPCION_SALIR = "7"
 
 
 def registrar_transaccion(matriz, monto, tipo):
@@ -15,7 +16,7 @@ def registrar_transaccion(matriz, monto, tipo):
 def ver_balance(balance):
     """Devuelve el monto formateado como texto con 2 decimales y signo $."""
     return f"${balance:.2f}"
-
+ 
 
 def pedir_monto_valido(mensaje):
     """Asegura mediante un ciclo while que el monto sea mayor a cero."""
@@ -81,6 +82,48 @@ def calcular_estadisticas(matriz, tipo_buscado):
     print(f"Menor {tipo_buscado}: ${minimo:.2f}")
 
 
+def calculadora_auxiliar():
+    """Permite realizar cálculos rápidos sin afectar el registro de finanzas."""
+    print("\n--- CALCULADORA FINANCIERA AUXILIAR ---")
+    print("1. Operaciones básicas (+, -, *, /)")
+    print("2. Calcular porcentaje")
+    
+    sub_opcion = input("Elige una opción de cálculo (1-2): ")
+    
+    if sub_opcion == "1":
+        num1 = float(input("Ingresa el primer número: "))
+        operador = input("Ingresa la operación (+, -, *, /): ")
+        num2 = float(input("Ingresa el segundo número: "))
+        
+        if operador == "+":
+            resultado = num1 + num2
+        elif operador == "-":
+            resultado = num1 - num2
+        elif operador == "*":
+            resultado = num1 * num2
+        elif operador == "/":
+            if num2 != 0:
+                resultado = num1 / num2
+            else:
+                print(" Error: No se puede dividir entre cero.")
+                return
+        else:
+            print(" Operador no válido.")
+            return
+            
+        print(f" Resultado del cálculo: {resultado:.2f}")
+        
+    elif sub_opcion == "2":
+        cantidad = float(input("Ingresa la cantidad base: "))
+        porcentaje = float(
+            input("Ingresa el porcentaje a calcular (ej. 15 para 15%): ")
+        )
+        resultado = (cantidad * porcentaje) / 100
+        print(f" El {porcentaje}% de {cantidad:.2f} es: {resultado:.2f}")
+    else:
+        print(" Opción no válida.")
+
+
 def main():
     """Función principal que ejecuta el gestor de finanzas."""
     usuario = input("¿Cuál es tu nombre? ")
@@ -96,9 +139,10 @@ def main():
         print(f"{OPCION_BALANCE}. Ver balance actual")
         print(f"{OPCION_HISTORIAL}. Ver historial de movimientos")
         print(f"{OPCION_ESTADISTICAS}. Ver estadísticas del día")
+        print(f"{OPCION_CALCULADORA}. Usar calculadora auxiliar")
         print(f"{OPCION_SALIR}. Salir")
 
-        opcion = input("Selecciona una opción (1-6): ")
+        opcion = input("Selecciona una opción (1-7): ")
 
         if opcion == OPCION_INGRESO:
             monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
@@ -138,11 +182,14 @@ def main():
             calcular_estadisticas(transacciones, "ingreso")
             calcular_estadisticas(transacciones, "gasto")
 
+        elif opcion == OPCION_CALCULADORA:
+            calculadora_auxiliar()
+
         elif opcion == OPCION_SALIR:
             print(f"\n¡Hasta luego, {usuario}! Gracias por usar el gestor.")
 
         else:
-            print(" Opción no válida. Por favor, elige un número del 1 al 6.")
+            print(" Opción no válida. Por favor, elige un número del 1 al 7.")
 
 
 # Ejecución del programa principal
