@@ -1,4 +1,4 @@
-"""Gestor de finanzas personales - Versión completa con Avance 8."""
+"""Gestor de finanzas personales multi-usuario - Avance 9."""
 
 OPCION_INGRESO = "1"
 OPCION_GASTO = "2"
@@ -7,7 +7,101 @@ OPCION_HISTORIAL = "4"
 OPCION_ESTADISTICAS = "5"
 OPCION_CALCULADORA = "6"
 OPCION_BUSCAR = "7"
-OPCION_SALIR = "8"
+OPCION_CAMBIAR_USUARIO = "8"
+OPCION_SALIR = "9"
+
+ARCHIVO_USUARIOS = "usuarios.txt"
+
+
+def normalizar_nombre_archivo(usuario):
+    """Genera un nombre de archivo seguro a partir del nombre del usuario."""
+    limpio = "_".join(usuario.strip().lower().split())
+    return f"transacciones_{limpio}.txt"
+
+
+def cargar_usuarios(nombre_archivo):
+    """Carga la lista de usuarios registrados desde un archivo."""
+    usuarios = []
+    try:
+        with open(nombre_archivo, "r", encoding="utf-8") as archivo:
+            for linea in archivo:
+                nombre = linea.strip()
+                if nombre != "" and nombre not in usuarios:
+                    usuarios.append(nombre)
+    except FileNotFoundError:
+        pass
+    return usuarios
+
+
+def guardar_usuarios(usuarios, nombre_archivo):
+    """Guarda la lista de usuarios registrados en un archivo."""
+    with open(nombre_archivo, "w", encoding="utf-8") as archivo:
+        for usuario in usuarios:
+            archivo.write(f"{usuario}\n")
+
+
+def seleccionar_o_registrar_usuario(usuarios):
+    """Permite elegir un usuario existente o registrar uno nuevo."""
+    while True:
+        print("\n=== REGISTRO Y SELECCIÓN DE USUARIOS ===")
+        if len(usuarios) > 0:
+            print("Usuarios registrados:")
+            for i in range(len(usuarios)):
+                print(f"{i + 1}. {usuarios[i]}")
+            print(f"{len(usuarios) + 1}. Registrar nuevo usuario")
+            eleccion = input("Selecciona una opción: ").strip()
+
+            if eleccion.isdigit():
+                indice = int(eleccion) - 1
+                if 0 <= indice < len(usuarios):
+                    return usuarios[indice]
+                if indice == len(usuarios):
+                    nuevo = pedir_texto_valido(
+                        "Ingresa el nombre del nuevo usuario: "
+                    ).title()
+                    if nuevo in usuarios:
+                        print("Ese usuario ya existe. Seleccionado.")
+                        return nuevo
+                    usuarios.append(nuevo)
+                    guardar_usuarios(usuarios, ARCHIVO_USUARIOS)
+                    return nuevo
+
+            print("Selección no válida. Intenta de nuevo.")
+        else:
+            print("No hay usuarios registrados todavía.")
+            nuevo = pedir_texto_valido(
+                "Ingresa tu nombre para registrarte: "
+            ).title()
+            usuarios.append(nuevo)
+            guardar_usuarios(usuarios, ARCHIVO_USUARIOS)
+            return nuevo
+
+
+def cargar_transacciones(nombre_archivo):
+    """Carga transacciones desde un archivo de texto y devuelve una matriz."""
+    matriz = []
+    try:
+        with open(nombre_archivo, "r", encoding="utf-8") as archivo:
+            for linea in archivo:
+                linea_limpia = linea.strip()
+                if linea_limpia != "":
+                    partes = linea_limpia.split("|")
+                    if len(partes) == 3:
+                        monto = float(partes[0])
+                        tipo = partes[1]
+                        descripcion = partes[2]
+                        matriz.append([monto, tipo, descripcion])
+    except FileNotFoundError:
+        pass
+    return matriz
+
+
+def guardar_transacciones(matriz, nombre_archivo):
+    """Guarda la matriz de transacciones en un archivo de texto."""
+    with open(nombre_archivo, "w", encoding="utf-8") as archivo:
+        for fila in matriz:
+            linea = f"{fila[0]}|{fila[1]}|{fila[2]}\n"
+            archivo.write(linea)
 
 
 def registrar_transaccion(matriz, monto, tipo, descripcion):
@@ -66,7 +160,7 @@ def calcular_estadisticas(matriz, tipo_buscado):
     total = 0.0
     contador = 0
     maximo = -1.0
-    minimo = float('inf')
+    minimo = float("inf")
 
     for i in range(len(matriz)):
         if matriz[i][1] == tipo_buscado:
@@ -103,8 +197,10 @@ def buscar_transacciones(matriz, palabra_clave):
             tipo = matriz[i][1]
             monto = f"${matriz[i][0]:.2f}"
             descripcion_limpia = matriz[i][2].capitalize()
-            print(f"{encontrados}. [{tipo.upper()}] {monto} - "
-                  f"{descripcion_limpia}")
+            print(
+                f"{encontrados}. [{tipo.upper()}] {monto} - "
+                f"{descripcion_limpia}"
+            )
     if encontrados == 0:
         print("No se encontraron transacciones con esa descripción.")
 
@@ -153,8 +249,10 @@ def calculadora_auxiliar():
 
 def main():
     """Función principal del gestor de finanzas."""
-    usuario = input("¿Cuál es tu nombre? ").strip().title()
-    transacciones = []
+    usuarios = cargar_usuarios(ARCHIVO_USUARIOS)
+    usuario = seleccionar_o_registrar_usuario(usuarios)
+    archivo_actual = normalizar_nombre_archivo(usuario)
+    transacciones = cargar_transacciones(archivo_actual)
     opcion = ""
 
     while opcion != OPCION_SALIR:
@@ -166,14 +264,16 @@ def main():
         print(f"{OPCION_ESTADISTICAS}. Ver estadísticas")
         print(f"{OPCION_CALCULADORA}. Usar calculadora auxiliar")
         print(f"{OPCION_BUSCAR}. Buscar por descripción")
+        print(f"{OPCION_CAMBIAR_USUARIO}. Cambiar o registrar usuario")
         print(f"{OPCION_SALIR}. Salir")
 
-        opcion = input("Selecciona una opción (1-8): ")
+        opcion = input("Selecciona una opción (1-9): ")
 
         if opcion == OPCION_INGRESO:
             monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
             desc = pedir_texto_valido("Ingresa una descripción: ")
             registrar_transaccion(transacciones, monto, "ingreso", desc)
+            guardar_transacciones(transacciones, archivo_actual)
             ingresos = calcular_total_por_tipo(transacciones, "ingreso")
             gastos = calcular_total_por_tipo(transacciones, "gasto")
             balance = ingresos - gastos
@@ -190,6 +290,7 @@ def main():
                 print("¡Advertencia! El gasto supera tu saldo.")
 
             registrar_transaccion(transacciones, monto, "gasto", desc)
+            guardar_transacciones(transacciones, archivo_actual)
             balance = balance_actual - monto
             print(f"Gasto registrado. Balance: {ver_balance(balance)}")
 
@@ -214,11 +315,19 @@ def main():
             palabra = pedir_texto_valido("Ingresa la palabra a buscar: ")
             buscar_transacciones(transacciones, palabra)
 
+        elif opcion == OPCION_CAMBIAR_USUARIO:
+            guardar_transacciones(transacciones, archivo_actual)
+            usuario = seleccionar_o_registrar_usuario(usuarios)
+            archivo_actual = normalizar_nombre_archivo(usuario)
+            transacciones = cargar_transacciones(archivo_actual)
+
         elif opcion == OPCION_SALIR:
+            guardar_transacciones(transacciones, archivo_actual)
+            guardar_usuarios(usuarios, ARCHIVO_USUARIOS)
             print(f"\n¡Hasta luego, {usuario}!")
 
         else:
-            print("Opción no válida. Elige un número del 1 al 8.")
+            print("Opción no válida. Elige un número del 1 al 9.")
 
 
 if __name__ == "__main__":
