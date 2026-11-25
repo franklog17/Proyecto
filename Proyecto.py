@@ -253,6 +253,7 @@ def main():
     usuario = seleccionar_o_registrar_usuario(usuarios)
     archivo_actual = normalizar_nombre_archivo(usuario)
     transacciones = cargar_transacciones(archivo_actual)
+    print(f"\n¡Bienvenido/a, {usuario}!")
     opcion = ""
 
     while opcion != OPCION_SALIR:
@@ -320,6 +321,7 @@ def main():
             usuario = seleccionar_o_registrar_usuario(usuarios)
             archivo_actual = normalizar_nombre_archivo(usuario)
             transacciones = cargar_transacciones(archivo_actual)
+            print(f"\n¡Bienvenido/a, {usuario}!")
 
         elif opcion == OPCION_SALIR:
             guardar_transacciones(transacciones, archivo_actual)
