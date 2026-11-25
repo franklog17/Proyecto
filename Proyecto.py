@@ -11,6 +11,7 @@ OPCION_CAMBIAR_USUARIO = "8"
 OPCION_SALIR = "9"
 
 ARCHIVO_USUARIOS = "usuarios.txt"
+PALABRAS_CANCELAR = ("cancelar", "c")
 
 
 def normalizar_nombre_archivo(usuario):
@@ -40,41 +41,115 @@ def guardar_usuarios(usuarios, nombre_archivo):
             archivo.write(f"{usuario}\n")
 
 
-def seleccionar_o_registrar_usuario(usuarios):
-    """Permite elegir un usuario existente o registrar uno nuevo."""
+def pedir_monto_valido(mensaje, permitir_cancelar=True):
+    """Asegura que el monto sea mayor a cero o permite cancelar."""
+    while True:
+        print(mensaje)
+        if permitir_cancelar:
+            print("(Escribe 'cancelar' para regresar al menú)")
+        entrada = input("> ").strip()
+
+        if permitir_cancelar and entrada.lower() in PALABRAS_CANCELAR:
+            return None
+
+        try:
+            monto = float(entrada)
+        except ValueError:
+            print("Error: Ingresa un número válido.")
+            continue
+
+        if monto <= 0:
+            print("Error: El monto debe ser mayor a 0.")
+        else:
+            return monto
+
+
+def pedir_texto_valido(
+    mensaje, permitir_cancelar=True, mostrar_ayuda_cancelar=True
+):
+    """Asegura que el texto no esté vacío o permite cancelar."""
+    while True:
+        print(mensaje)
+        if permitir_cancelar and mostrar_ayuda_cancelar:
+            print("(Escribe 'cancelar' para regresar al menú)")
+        texto = input("> ").strip()
+
+        if permitir_cancelar and texto.lower() in PALABRAS_CANCELAR:
+            return None
+
+        if texto == "":
+            print("Error: El texto no puede estar vacío.")
+        else:
+            return texto
+
+
+def seleccionar_o_registrar_usuario(usuarios, permitir_cancelar=True):
+    """Permite elegir un usuario, registrar uno nuevo o cancelar/salir."""
     while True:
         print("\n=== REGISTRO Y SELECCIÓN DE USUARIOS ===")
         if len(usuarios) > 0:
             print("Usuarios registrados:")
             for i in range(len(usuarios)):
                 print(f"{i + 1}. {usuarios[i]}")
-            print(f"{len(usuarios) + 1}. Registrar nuevo usuario")
+
+            op_nuevo = len(usuarios) + 1
+            print(f"{op_nuevo}. Registrar nuevo usuario")
+
+            if permitir_cancelar:
+                op_cancelar = len(usuarios) + 2
+                print(f"{op_cancelar}. Cancelar / Salir")
+            else:
+                op_cancelar = None
+
             eleccion = input("Selecciona una opción: ").strip()
 
             if eleccion.isdigit():
-                indice = int(eleccion) - 1
-                if 0 <= indice < len(usuarios):
-                    return usuarios[indice]
-                if indice == len(usuarios):
-                    nuevo = pedir_texto_valido(
-                        "Ingresa el nombre del nuevo usuario: "
-                    ).title()
+                opcion_num = int(eleccion)
+                if 1 <= opcion_num <= len(usuarios):
+                    return usuarios[opcion_num - 1]
+                if opcion_num == op_nuevo:
+                    print("\n--- REGISTRAR NUEVO USUARIO ---")
+                    nuevo_raw = pedir_texto_valido(
+                        "Ingresa el nombre del nuevo usuario:",
+                        permitir_cancelar=True,
+                    )
+                    if nuevo_raw is None:
+                        print("Registro cancelado.")
+                        continue
+                    nuevo = nuevo_raw.title()
                     if nuevo in usuarios:
                         print("Ese usuario ya existe. Seleccionado.")
                         return nuevo
                     usuarios.append(nuevo)
                     guardar_usuarios(usuarios, ARCHIVO_USUARIOS)
                     return nuevo
+                if op_cancelar is not None and opcion_num == op_cancelar:
+                    return None
 
             print("Selección no válida. Intenta de nuevo.")
         else:
             print("No hay usuarios registrados todavía.")
-            nuevo = pedir_texto_valido(
-                "Ingresa tu nombre para registrarte: "
-            ).title()
-            usuarios.append(nuevo)
-            guardar_usuarios(usuarios, ARCHIVO_USUARIOS)
-            return nuevo
+            print("1. Registrar nuevo usuario")
+            print("2. Salir")
+            eleccion = input("Selecciona una opción (1-2): ").strip()
+
+            if eleccion == "1":
+                print("\n--- REGISTRAR USUARIO ---")
+                nuevo_raw = pedir_texto_valido(
+                    "Ingresa tu nombre para registrarte:",
+                    permitir_cancelar=True,
+                )
+                if nuevo_raw is None:
+                    print("Registro cancelado.")
+                    continue
+                nuevo = nuevo_raw.title()
+                usuarios.append(nuevo)
+                guardar_usuarios(usuarios, ARCHIVO_USUARIOS)
+                return nuevo
+            if eleccion == "2":
+                return None
+
+            print("Selección no válida. Intenta de nuevo.")
 
 
 def cargar_transacciones(nombre_archivo):
@@ -112,24 +187,6 @@ def registrar_transaccion(matriz, monto, tipo, descripcion):
 def ver_balance(balance):
     """Devuelve el monto formateado como texto con 2 decimales."""
     return f"${balance:.2f}"
-
-
-def pedir_monto_valido(mensaje):
-    """Asegura mediante un ciclo while que el monto sea mayor a cero."""
-    monto = float(input(mensaje))
-    while monto <= 0:
-        print("Error: El monto debe ser mayor a 0.")
-        monto = float(input(mensaje))
-    return monto
-
-
-def pedir_texto_valido(mensaje):
-    """Asegura que la cadena ingresada no esté vacía usando strip."""
-    texto = input(mensaje).strip()
-    while texto == "":
-        print("Error: El texto no puede estar vacío.")
-        texto = input(mensaje).strip()
-    return texto
 
 
 def calcular_total_por_tipo(matriz, tipo_buscado):
@@ -210,13 +267,38 @@ def calculadora_auxiliar():
     print("\n--- CALCULADORA FINANCIERA AUXILIAR ---")
     print("1. Operaciones básicas (+, -, *, /)")
     print("2. Calcular porcentaje")
+    print("3. Cancelar")
 
-    sub_opcion = input("Elige una opción de cálculo (1-2): ")
+    sub_opcion = input("Elige una opción de cálculo (1-3): ").strip()
 
     if sub_opcion == "1":
-        num1 = float(input("Ingresa el primer número: "))
-        operador = input("Ingresa la operación (+, -, *, /): ")
-        num2 = float(input("Ingresa el segundo número: "))
+        num1 = pedir_monto_valido(
+            "Ingresa el primer número:",
+            permitir_cancelar=True,
+        )
+        if num1 is None:
+            print("Cálculo cancelado.")
+            return
+
+        operador = pedir_texto_valido(
+            "Ingresa la operación (+, -, *, /):",
+            permitir_cancelar=True,
+        )
+        if operador is None:
+            print("Cálculo cancelado.")
+            return
+
+        print("Ingresa el segundo número:")
+        print("(Escribe 'cancelar' para regresar al menú)")
+        num2_raw = input("> ").strip()
+        if num2_raw.lower() in PALABRAS_CANCELAR:
+            print("Cálculo cancelado.")
+            return
+        try:
+            num2 = float(num2_raw)
+        except ValueError:
+            print("Error: Número no válido. Cálculo cancelado.")
+            return
 
         if operador == "+":
             resultado = num1 + num2
@@ -237,12 +319,31 @@ def calculadora_auxiliar():
         print(f"Resultado del cálculo: {resultado:.2f}")
 
     elif sub_opcion == "2":
-        cantidad = float(input("Ingresa la cantidad base: "))
-        porcentaje = float(
-            input("Ingresa el porcentaje a calcular (ej. 15): ")
+        cantidad = pedir_monto_valido(
+            "Ingresa la cantidad base:",
+            permitir_cancelar=True,
         )
+        if cantidad is None:
+            print("Cálculo cancelado.")
+            return
+
+        print("Ingresa el porcentaje a calcular (ej. 15):")
+        print("(Escribe 'cancelar' para regresar al menú)")
+        porcentaje_raw = input("> ").strip()
+        if porcentaje_raw.lower() in PALABRAS_CANCELAR:
+            print("Cálculo cancelado.")
+            return
+        try:
+            porcentaje = float(porcentaje_raw)
+        except ValueError:
+            print("Error: Porcentaje no válido. Cálculo cancelado.")
+            return
+
         resultado = (cantidad * porcentaje) / 100
         print(f"El {porcentaje}% de {cantidad:.2f} es: {resultado:.2f}")
+
+    elif sub_opcion == "3":
+        print("Cálculo cancelado.")
     else:
         print("Opción de cálculo no válida.")
 
@@ -250,7 +351,12 @@ def calculadora_auxiliar():
 def main():
     """Función principal del gestor de finanzas."""
     usuarios = cargar_usuarios(ARCHIVO_USUARIOS)
-    usuario = seleccionar_o_registrar_usuario(usuarios)
+    usuario = seleccionar_o_registrar_usuario(usuarios, permitir_cancelar=True)
+
+    if usuario is None:
+        print("\nOperación cancelada. ¡Hasta luego!")
+        return
+
     archivo_actual = normalizar_nombre_archivo(usuario)
     transacciones = cargar_transacciones(archivo_actual)
     print(f"\n¡Bienvenido/a, {usuario}!")
@@ -268,11 +374,27 @@ def main():
         print(f"{OPCION_CAMBIAR_USUARIO}. Cambiar o registrar usuario")
         print(f"{OPCION_SALIR}. Salir")
 
-        opcion = input("Selecciona una opción (1-9): ")
+        opcion = input("Selecciona una opción (1-9): ").strip()
 
         if opcion == OPCION_INGRESO:
-            monto = pedir_monto_valido("¿Cuánto dinero ganaste? $")
-            desc = pedir_texto_valido("Ingresa una descripción: ")
+            print("\n--- REGISTRAR INGRESO ---")
+            monto = pedir_monto_valido(
+                "¿Cuánto dinero ganaste? $",
+                permitir_cancelar=True,
+            )
+            if monto is None:
+                print("Registro de ingreso cancelado.")
+                continue
+
+            desc = pedir_texto_valido(
+                "Ingresa una descripción:",
+                permitir_cancelar=True,
+                mostrar_ayuda_cancelar=False,
+            )
+            if desc is None:
+                print("Registro de ingreso cancelado.")
+                continue
+
             registrar_transaccion(transacciones, monto, "ingreso", desc)
             guardar_transacciones(transacciones, archivo_actual)
             ingresos = calcular_total_por_tipo(transacciones, "ingreso")
@@ -281,8 +403,24 @@ def main():
             print(f"Ingreso registrado. Balance: {ver_balance(balance)}")
 
         elif opcion == OPCION_GASTO:
-            monto = pedir_monto_valido("¿Cuánto dinero gastaste? $")
-            desc = pedir_texto_valido("Ingresa una descripción: ")
+            print("\n--- REGISTRAR GASTO ---")
+            monto = pedir_monto_valido(
+                "¿Cuánto dinero gastaste? $",
+                permitir_cancelar=True,
+            )
+            if monto is None:
+                print("Registro de gasto cancelado.")
+                continue
+
+            desc = pedir_texto_valido(
+                "Ingresa una descripción:",
+                permitir_cancelar=True,
+                mostrar_ayuda_cancelar=False,
+            )
+            if desc is None:
+                print("Registro de gasto cancelado.")
+                continue
+
             ingresos = calcular_total_por_tipo(transacciones, "ingreso")
             gastos = calcular_total_por_tipo(transacciones, "gasto")
             balance_actual = ingresos - gastos
@@ -296,10 +434,11 @@ def main():
             print(f"Gasto registrado. Balance: {ver_balance(balance)}")
 
         elif opcion == OPCION_BALANCE:
+            print("\n--- BALANCE ACTUAL ---")
             ingresos = calcular_total_por_tipo(transacciones, "ingreso")
             gastos = calcular_total_por_tipo(transacciones, "gasto")
             balance = ingresos - gastos
-            print(f"\nTu saldo actual es: {ver_balance(balance)}")
+            print(f"Tu saldo actual es: {ver_balance(balance)}")
 
         elif opcion == OPCION_HISTORIAL:
             mostrar_historial(transacciones, "ingreso")
@@ -313,15 +452,30 @@ def main():
             calculadora_auxiliar()
 
         elif opcion == OPCION_BUSCAR:
-            palabra = pedir_texto_valido("Ingresa la palabra a buscar: ")
+            print("\n--- BUSCAR POR DESCRIPCIÓN ---")
+            palabra = pedir_texto_valido(
+                "Ingresa la palabra a buscar:",
+                permitir_cancelar=True,
+            )
+            if palabra is None:
+                print("Búsqueda cancelada.")
+                continue
             buscar_transacciones(transacciones, palabra)
 
         elif opcion == OPCION_CAMBIAR_USUARIO:
             guardar_transacciones(transacciones, archivo_actual)
-            usuario = seleccionar_o_registrar_usuario(usuarios)
-            archivo_actual = normalizar_nombre_archivo(usuario)
-            transacciones = cargar_transacciones(archivo_actual)
-            print(f"\n¡Bienvenido/a, {usuario}!")
+            nuevo_usuario = seleccionar_o_registrar_usuario(
+                usuarios, permitir_cancelar=True
+            )
+            if nuevo_usuario is not None:
+                usuario = nuevo_usuario
+                archivo_actual = normalizar_nombre_archivo(usuario)
+                transacciones = cargar_transacciones(archivo_actual)
+                print(f"\n¡Bienvenido/a, {usuario}!")
+            else:
+                print(
+                    f"\nCambio cancelado. Sigues en la sesión de {usuario}."
+                )
 
         elif opcion == OPCION_SALIR:
             guardar_transacciones(transacciones, archivo_actual)
